@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  TouchableOpacity,
   Dimensions,
   RefreshControl,
 } from 'react-native';
@@ -12,7 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
-import { useRouter } from 'expo-router';
+
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
@@ -23,7 +22,7 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const { crops, activities, fetchCrops, fetchActivities } = useAppStore();
   const [refreshing, setRefreshing] = useState(false);
-  const router = useRouter();
+
 
   const loadData = useCallback(async () => {
     if (user) {
@@ -114,9 +113,7 @@ export default function DashboardScreen() {
           <Animatable.View animation="fadeInUp" duration={800} delay={400}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Active Crops</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/all-crops')}>
-                <Text style={styles.seeAllText}>See All</Text>
-              </TouchableOpacity>
+          
             </View>
 
             {activeCrops.length > 0 ? (
@@ -154,9 +151,7 @@ export default function DashboardScreen() {
           <Animatable.View animation="fadeInUp" duration={800} delay={600}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Activities</Text>
-              <TouchableOpacity onPress={() => router.push('/(tabs)/all-activities')}>
-                <Text style={styles.seeAllText}>See All</Text>
-              </TouchableOpacity>
+            
             </View>
 
             {recentActivities.length > 0 ? (
@@ -180,7 +175,7 @@ export default function DashboardScreen() {
                       </Text>
                     </View>
                     <Text style={styles.activityType}>
-                      {activity.activity_type.replace('_', ' ')}
+                      {activity.activity_type?.replace('_', ' ') || 'Unknown'}
                     </Text>
                   </Animatable.View>
                 ))}

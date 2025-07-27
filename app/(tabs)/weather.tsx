@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
 
 interface CurrentWeather {
@@ -30,6 +30,7 @@ interface CurrentWeather {
 export default function WeatherScreen() {
   const { user } = useAuthStore();
   const { weatherData, fetchWeatherData, addWeatherData } = useAppStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [refreshing, setRefreshing] = useState(false);
   const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
@@ -41,19 +42,21 @@ export default function WeatherScreen() {
         setLocationPermission(true);
         getCurrentLocation();
       } else {
-        Alert.alert(
-          'Location Permission',
-          'Location permission is needed to get current weather data.',
-          [
-            { text: 'Cancel', style: 'cancel' },
+        showAlert({
+          title: 'Location Permission',
+          message: 'Location permission is needed to get current weather data.',
+          type: 'warning',
+          buttons: [
+            { text: 'Cancel', style: 'cancel', onPress: () => {} },
             { text: 'Settings', onPress: () => Location.requestForegroundPermissionsAsync() }
-          ]
-        );
+          ],
+        });
       }
     } catch (error) {
       console.error('Error requesting location permission:', error);
     }
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getCurrentLocation]);
 
   useEffect(() => {
     if (user) {
@@ -62,16 +65,21 @@ export default function WeatherScreen() {
     }
   }, [user, fetchWeatherData, requestLocationPermission]);
 
-  const getCurrentLocation = async () => {
+  const getCurrentLocation = useCallback(async () => {
     try {
       // In a real app, you would fetch weather data from a weather API here
       // For demo purposes, we'll simulate weather data
       simulateCurrentWeather();
     } catch (error) {
       console.error('Error getting location:', error);
-      Alert.alert('Error', 'Unable to get current location');
+      showAlert({
+        title: 'Error',
+        message: 'Unable to get current location',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
-  };
+  }, []);
 
   const simulateCurrentWeather = () => {
     // Simulate current weather data
@@ -116,9 +124,19 @@ export default function WeatherScreen() {
 
     const result = await addWeatherData(weatherRecord);
     if (result.error) {
-      Alert.alert('Error', 'Failed to save weather data');
+      showAlert({
+        title: 'Error',
+        message: 'Failed to save weather data',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
-      Alert.alert('Success', 'Weather data saved successfully');
+      showAlert({
+        title: 'Success',
+        message: 'Weather data saved successfully',
+        type: 'success',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
   };
 
@@ -213,7 +231,7 @@ export default function WeatherScreen() {
                 <View style={styles.temperatureContainer}>
                   <Text style={styles.temperature}>{currentWeather.temperature}°C</Text>
                   <Text style={styles.condition}>
-                    {currentWeather.condition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                    {currentWeather.condition?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown'}
                   </Text>
                 </View>
               </View>
@@ -361,6 +379,7 @@ export default function WeatherScreen() {
           </View>
         )}
       </ScrollView>
+      <AlertComponent />
     </SafeAreaView>
   );
 }

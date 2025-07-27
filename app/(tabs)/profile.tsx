@@ -83,6 +83,9 @@ export default function ProfileScreen() {
   };
 
   const handleUpdateProfile = async () => {
+    console.log('🔄 Starting profile update...');
+    console.log('📝 Original form data:', formData);
+    
     try {
       // Map form data to ProfileUpdate interface
       const profileUpdates = {
@@ -93,8 +96,16 @@ export default function ProfileScreen() {
         farming_experience: formData.farming_experience,
       };
 
+      console.log('🔄 Mapped profile updates:', profileUpdates);
+      console.log('👤 Current user ID:', user?.id);
+      console.log('📊 Current user metadata:', user?.user_metadata);
+
       const result = await updateProfile(profileUpdates);
+      
+      console.log('📤 Update result:', result);
+      
       if (result.error) {
+        console.error('❌ Profile update failed:', result.error);
         showAlert({
           title: 'Update Failed',
           message: result.error.message || 'Failed to update profile',
@@ -102,9 +113,14 @@ export default function ProfileScreen() {
           buttons: [{ text: 'OK', onPress: () => {} }],
         });
       } else {
+        console.log('✅ Profile update successful!');
         setEditModalVisible(false);
+        
         // Refresh user data to reflect changes
+        console.log('🔄 Refreshing user data...');
         await initialize();
+        console.log('✅ User data refreshed');
+        
         showAlert({
           title: 'Success',
           message: 'Profile updated successfully!',
@@ -113,6 +129,12 @@ export default function ProfileScreen() {
         });
       }
     } catch (error) {
+      console.error('💥 Exception during profile update:', error);
+      console.error('📋 Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      
       showAlert({
         title: 'Error',
         message: error instanceof Error ? error.message : 'An unexpected error occurred',

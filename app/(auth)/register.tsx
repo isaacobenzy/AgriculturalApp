@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +15,7 @@ import * as Animatable from 'react-native-animatable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/hooks/useAuth';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants';
 
 export default function RegisterScreen() {
@@ -30,20 +30,36 @@ export default function RegisterScreen() {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   
   const { signUpWithOTP, verifyOTP } = useAuthStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const handleSendOTP = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showAlert({
+        title: 'Error',
+        message: 'Please fill in all fields',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      showAlert({
+        title: 'Error',
+        message: 'Passwords do not match',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      showAlert({
+        title: 'Error',
+        message: 'Password must be at least 6 characters',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
@@ -52,16 +68,31 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Error', error.message || 'Failed to send OTP');
+      showAlert({
+        title: 'Error',
+        message: error.message || 'Failed to send OTP',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
       setStep('otp');
-      Alert.alert('Success', 'OTP sent to your email. Please check your inbox.');
+      showAlert({
+        title: 'Success',
+        message: 'OTP sent to your email. Please check your inbox.',
+        type: 'success',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
   };
 
   const handleVerifyOTP = async () => {
     if (!otp) {
-      Alert.alert('Error', 'Please enter the OTP');
+      showAlert({
+        title: 'Error',
+        message: 'Please enter the OTP',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
@@ -70,13 +101,19 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Verification Failed', error.message || 'Invalid OTP');
+      showAlert({
+        title: 'Verification Failed',
+        message: error.message || 'Invalid OTP',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
-      Alert.alert(
-        'Success',
-        'Account created successfully!',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
-      );
+      showAlert({
+        title: 'Success',
+        message: 'Account created successfully!',
+        type: 'success',
+        buttons: [{ text: 'OK', onPress: () => router.replace('/(tabs)') }],
+      });
     }
   };
 
@@ -254,6 +291,8 @@ export default function RegisterScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      
+      <AlertComponent />
     </LinearGradient>
   );
 }

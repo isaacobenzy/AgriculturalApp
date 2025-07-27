@@ -182,26 +182,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   updateProfile: async (updates: ProfileUpdate) => {
+    console.log('🔄 [AUTH] Starting updateProfile function...');
+    console.log('📝 [AUTH] Received updates:', updates);
+    
     try {
       const { user } = get();
-      if (!user) return { error: { message: 'No user found' } };
+      if (!user) {
+        console.error('❌ [AUTH] No user found');
+        return { error: { message: 'No user found' } };
+      }
 
-      // Prepare data for profiles table
+      console.log('👤 [AUTH] Current user:', {
+        id: user.id,
+        email: user.email,
+        metadata: user.user_metadata,
+      });
+
+      // Prepare data for profiles table (matching schema)
       const profileData: any = {};
       if (updates.full_name) profileData.full_name = updates.full_name;
       if (updates.farm_name) profileData.farm_name = updates.farm_name;
       if (updates.farm_location) profileData.farm_location = updates.farm_location;
       if (updates.farm_size) profileData.farm_size = updates.farm_size;
 
+      console.log('🗄️ [AUTH] Profile data for database (matching schema):', profileData);
+      console.log('📋 [AUTH] Schema fields: id, email, full_name, avatar_url, farm_name, farm_location, farm_size, created_at, updated_at');
+
       // Update profiles table
+      console.log('🔄 [AUTH] Updating profiles table...');
       const { error: profileError } = await supabase
         .from('profiles')
         .update(profileData)
         .eq('id', user.id);
 
       if (profileError) {
+        console.error('❌ [AUTH] Profile table update failed:', profileError);
         return { error: { message: profileError.message } };
       }
+
+      console.log('✅ [AUTH] Profile table updated successfully');
 
       // Update user metadata for additional fields
       const metadataUpdates: any = {};
@@ -211,19 +230,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (updates.farm_size) metadataUpdates.farm_size = updates.farm_size;
       if (updates.farming_experience) metadataUpdates.farming_experience = updates.farming_experience;
 
+      console.log('📊 [AUTH] Metadata updates:', metadataUpdates);
+
       if (Object.keys(metadataUpdates).length > 0) {
+        console.log('🔄 [AUTH] Updating user metadata...');
         const { error: metadataError } = await supabase.auth.updateUser({
           data: metadataUpdates
         });
 
         if (metadataError) {
-          console.warn('Metadata update failed:', metadataError.message);
+          console.warn('⚠️ [AUTH] Metadata update failed:', metadataError.message);
           // Don't return error as profile was updated successfully
+        } else {
+          console.log('✅ [AUTH] User metadata updated successfully');
         }
       }
 
+      console.log('🎉 [AUTH] Profile update completed successfully');
       return {};
     } catch (error) {
+      console.error('💥 [AUTH] Exception in updateProfile:', error);
+      console.error('📋 [AUTH] Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      });
       return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
     }
   },

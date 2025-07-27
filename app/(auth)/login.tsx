@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +15,7 @@ import * as Animatable from 'react-native-animatable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '@/hooks/useAuth';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { Colors, Typography, Spacing, BorderRadius } from '@/constants';
 
 export default function LoginScreen() {
@@ -25,10 +25,16 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   
   const { signIn } = useAuthStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
 
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Error', 'Please fill in all fields');
+      showAlert({
+        title: 'Error',
+        message: 'Please fill in all fields',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
@@ -37,7 +43,12 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Login Failed', error.message || 'An error occurred');
+      showAlert({
+        title: 'Login Failed',
+        message: error.message || 'An error occurred',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
       router.replace('/(tabs)');
     }
@@ -117,7 +128,7 @@ export default function LoginScreen() {
               </TouchableOpacity>
 
               <View style={styles.footer}>
-                <Text style={styles.footerText}>Don't have an account? </Text>
+                <Text style={styles.footerText}> Want an account? </Text>
                 <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
                   <Text style={styles.footerLink}>Sign Up</Text>
                 </TouchableOpacity>
@@ -126,6 +137,8 @@ export default function LoginScreen() {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      
+      <AlertComponent />
     </LinearGradient>
   );
 }

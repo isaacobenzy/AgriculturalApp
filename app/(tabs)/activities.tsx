@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Modal,
   TextInput,
   Dimensions,
@@ -18,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { FarmActivity } from '@/types';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, ActivityTypesList } from '@/constants';
 
@@ -26,6 +26,7 @@ Dimensions.get('window');
 export default function ActivitiesScreen() {
   const { user } = useAuthStore();
   const { activities, crops, fetchActivities, fetchCrops, addActivity, updateActivity, deleteActivity } = useAppStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null);
@@ -92,7 +93,12 @@ export default function ActivitiesScreen() {
 
   const handleSave = async () => {
     if (!user || !formData.description.trim()) {
-      Alert.alert('Error', 'Please fill in the activity description');
+      showAlert({
+        title: 'Error',
+        message: 'Please fill in the activity description',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
@@ -115,33 +121,54 @@ export default function ActivitiesScreen() {
     }
 
     if (result.error) {
-      Alert.alert('Error', 'Failed to save activity');
+      showAlert({
+        title: 'Error',
+        message: 'Failed to save activity',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
       closeModal();
-      Alert.alert('Success', `Activity ₵{editingActivity ? 'updated' : 'added'} successfully`);
+      showAlert({
+        title: 'Success',
+        message: `Activity ${editingActivity ? 'updated' : 'added'} successfully`,
+        type: 'success',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
   };
 
   const handleDelete = (activity: FarmActivity) => {
-    Alert.alert(
-      'Delete Activity',
-      'Are you sure you want to delete this activity?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      title: 'Delete Activity',
+      message: 'Are you sure you want to delete this activity?',
+      type: 'warning',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: () => {} },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             const result = await deleteActivity(activity.id);
             if (result.error) {
-              Alert.alert('Error', 'Failed to delete activity');
+              showAlert({
+                title: 'Error',
+                message: 'Failed to delete activity',
+                type: 'error',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             } else {
-              Alert.alert('Success', 'Activity deleted successfully');
+              showAlert({
+                title: 'Success',
+                message: 'Activity deleted successfully',
+                type: 'success',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const getActivityIcon = (type: string): any => {
@@ -260,7 +287,7 @@ export default function ActivitiesScreen() {
                   <View style={styles.activityInfo}>
                     <Text style={styles.activityDescription}>{activity.description}</Text>
                     <Text style={styles.activityType}>
-                      {activity.activity_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                      {activity.activity_type?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Unknown'}
                     </Text>
                     <Text style={styles.cropName}>{getCropName(activity.crop_id)}</Text>
                   </View>
@@ -458,6 +485,8 @@ export default function ActivitiesScreen() {
           />
         )}
       </Modal>
+      
+      <AlertComponent />
     </SafeAreaView>
   );
 }

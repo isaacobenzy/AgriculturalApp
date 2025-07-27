@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Modal,
   TextInput,
   RefreshControl,
@@ -16,12 +15,14 @@ import * as Animatable from 'react-native-animatable';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { Crop } from '@/types';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
 
 export default function CropsScreen() {
   const { user } = useAuthStore();
   const { crops, fetchCrops, addCrop, updateCrop, deleteCrop } = useAppStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null);
@@ -87,7 +88,12 @@ export default function CropsScreen() {
 
   const handleSave = async () => {
     if (!user || !formData.name.trim()) {
-      Alert.alert('Error', 'Please fill in the crop name');
+      showAlert({
+        title: 'Error',
+        message: 'Please fill in the crop name',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
       return;
     }
 
@@ -111,33 +117,54 @@ export default function CropsScreen() {
     }
 
     if (result.error) {
-      Alert.alert('Error', 'Failed to save crop');
+      showAlert({
+        title: 'Error',
+        message: 'Failed to save crop',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     } else {
       closeModal();
-      Alert.alert('Success', `Crop ${editingCrop ? 'updated' : 'added'} successfully`);
+      showAlert({
+        title: 'Success',
+        message: `Crop ${editingCrop ? 'updated' : 'added'} successfully`,
+        type: 'success',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
   };
 
   const handleDelete = (crop: Crop) => {
-    Alert.alert(
-      'Delete Crop',
-      `Are you sure you want to delete ${crop.name}?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      title: 'Delete Crop',
+      message: `Are you sure you want to delete ${crop.name}?`,
+      type: 'warning',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: () => {} },
         {
           text: 'Delete',
           style: 'destructive',
           onPress: async () => {
             const result = await deleteCrop(crop.id);
             if (result.error) {
-              Alert.alert('Error', 'Failed to delete crop');
+              showAlert({
+                title: 'Error',
+                message: 'Failed to delete crop',
+                type: 'error',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             } else {
-              Alert.alert('Success', 'Crop deleted successfully');
+              showAlert({
+                title: 'Success',
+                message: 'Crop deleted successfully',
+                type: 'success',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const getStatusColor = (status: string) => {
@@ -152,8 +179,8 @@ export default function CropsScreen() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'planted': return 'seed-outline';
-      case 'growing': return 'leaf-outline';
+      case 'planted': return 'leaf-outline';
+      case 'growing': return 'trending-up-outline';
       case 'harvested': return 'checkmark-circle-outline';
       case 'failed': return 'close-circle-outline';
       default: return 'help-circle-outline';
@@ -433,6 +460,8 @@ export default function CropsScreen() {
           />
         )}
       </Modal>
+      
+      <AlertComponent />
     </SafeAreaView>
   );
 }
