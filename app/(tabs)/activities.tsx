@@ -118,7 +118,7 @@ export default function ActivitiesScreen() {
       Alert.alert('Error', 'Failed to save activity');
     } else {
       closeModal();
-      Alert.alert('Success', `Activity ${editingActivity ? 'updated' : 'added'} successfully`);
+      Alert.alert('Success', `Activity ₵{editingActivity ? 'updated' : 'added'} successfully`);
     }
   };
 
@@ -276,7 +276,7 @@ export default function ActivitiesScreen() {
                     )}
                     {activity.cost && (
                       <Text style={styles.activityCost}>
-                        ${activity.cost}
+                        ₵{activity.cost}
                       </Text>
                     )}
                   </View>
@@ -422,7 +422,7 @@ export default function ActivitiesScreen() {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.formLabel}>Cost ($)</Text>
+              <Text style={styles.formLabel}>Cost (₵)</Text>
               <TextInput
                 style={styles.formInput}
                 value={formData.cost}

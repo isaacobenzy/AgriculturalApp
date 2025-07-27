@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
-  TextInput,
   Modal,
+  TextInput,
   Switch,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,11 +14,13 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
+import { useCustomAlert } from '@/components/ui/CustomAlert';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
 
 export default function ProfileScreen() {
-  const { user, signOut, updateProfile } = useAuthStore();
+  const { user, signOut, updateProfile, initialize } = useAuthStore();
   const { crops, activities, weatherData } = useAppStore();
+  const { showAlert, AlertComponent } = useCustomAlert();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [settingsModalVisible, setSettingsModalVisible] = useState(false);
   const [formData, setFormData] = useState({
@@ -36,35 +37,113 @@ export default function ProfileScreen() {
     darkMode: false,
   });
 
+  useEffect(() => {
+    if (user?.user_metadata) {
+      setFormData({
+        full_name: user.user_metadata.full_name || '',
+        phone: user.user_metadata.phone || '',
+        location: user.user_metadata.location || '',
+        farm_size: user.user_metadata.farm_size || '',
+        farming_experience: user.user_metadata.farming_experience || '',
+      });
+    }
+  }, [user]);
+
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to sign out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    showAlert({
+      title: 'Sign Out',
+      message: 'Are you sure you want to sign out?',
+      type: 'warning',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: () => {} },
         {
           text: 'Sign Out',
           style: 'destructive',
           onPress: async () => {
             try {
               await signOut();
+              showAlert({
+                title: 'Success',
+                message: 'You have been signed out successfully',
+                type: 'success',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             } catch (error) {
-              Alert.alert('Error', 'Failed to sign out');
+              showAlert({
+                title: 'Error',
+                message: error instanceof Error ? error.message : 'Failed to sign out. Please try again.',
+                type: 'error',
+                buttons: [{ text: 'OK', onPress: () => {} }],
+              });
             }
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   const handleUpdateProfile = async () => {
-    const result = await updateProfile(formData);
-    if (result.error) {
-      Alert.alert('Error', 'Failed to update profile');
-    } else {
-      setEditModalVisible(false);
-      Alert.alert('Success', 'Profile updated successfully');
+    try {
+      // Map form data to ProfileUpdate interface
+      const profileUpdates = {
+        full_name: formData.full_name,
+        phone: formData.phone,
+        farm_location: formData.location, // Map location to farm_location
+        farm_size: formData.farm_size,
+        farming_experience: formData.farming_experience,
+      };
+
+      const result = await updateProfile(profileUpdates);
+      if (result.error) {
+        showAlert({
+          title: 'Update Failed',
+          message: result.error.message || 'Failed to update profile',
+          type: 'error',
+          buttons: [{ text: 'OK', onPress: () => {} }],
+        });
+      } else {
+        setEditModalVisible(false);
+        // Refresh user data to reflect changes
+        await initialize();
+        showAlert({
+          title: 'Success',
+          message: 'Profile updated successfully!',
+          type: 'success',
+          buttons: [{ text: 'OK', onPress: () => {} }],
+        });
+      }
+    } catch (error) {
+      showAlert({
+        title: 'Error',
+        message: error instanceof Error ? error.message : 'An unexpected error occurred',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
     }
+  };
+
+  const handleDeleteAccount = () => {
+    showAlert({
+      title: 'Delete Account',
+      message: 'This action cannot be undone. All your data will be permanently deleted.',
+      type: 'error',
+      buttons: [
+        { text: 'Cancel', style: 'cancel', onPress: () => {} },
+        { 
+          text: 'Delete', 
+          style: 'destructive', 
+          onPress: () => {
+            // TODO: Implement account deletion
+            showAlert({
+              title: 'Feature Coming Soon',
+              message: 'Account deletion will be available in a future update.',
+              type: 'info',
+              buttons: [{ text: 'OK', onPress: () => {} }],
+            });
+          }
+        },
+      ],
+    });
   };
 
   const getInitials = (name: string | undefined): string => {
@@ -122,7 +201,12 @@ export default function ProfileScreen() {
         {
           icon: 'notifications-outline',
           label: 'Notifications',
-          onPress: () => Alert.alert('Coming Soon', 'Notification settings will be available soon'),
+          onPress: () => showAlert({
+            title: 'Notifications',
+            message: 'Notification settings will be available in a future update.',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
       ],
@@ -133,19 +217,34 @@ export default function ProfileScreen() {
         {
           icon: 'download-outline',
           label: 'Export Data',
-          onPress: () => Alert.alert('Coming Soon', 'Data export feature will be available soon'),
+          onPress: () => showAlert({
+            title: 'Export Data',
+            message: 'Data export feature will be available in a future update.',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
         {
           icon: 'shield-outline',
           label: 'Privacy Policy',
-          onPress: () => Alert.alert('Privacy Policy', 'Your privacy is important to us. All data is stored securely and never shared without your consent.'),
+          onPress: () => showAlert({
+            title: 'Privacy Policy',
+            message: 'Your privacy is important to us. All data is stored securely and never shared without your consent.',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
         {
           icon: 'document-text-outline',
           label: 'Terms of Service',
-          onPress: () => Alert.alert('Terms of Service', 'By using this app, you agree to our terms of service.'),
+          onPress: () => showAlert({
+            title: 'Terms of Service',
+            message: 'By using this app, you agree to our terms of service.',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
       ],
@@ -156,20 +255,46 @@ export default function ProfileScreen() {
         {
           icon: 'help-circle-outline',
           label: 'Help & FAQ',
-          onPress: () => Alert.alert('Help', 'For support, please contact us at support@farmapp.com'),
+          onPress: () => showAlert({
+            title: 'Help & FAQ',
+            message: 'For support, please contact us at support@farmapp.com',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
         {
           icon: 'mail-outline',
           label: 'Contact Support',
-          onPress: () => Alert.alert('Contact Support', 'Email: support@farmapp.com\nPhone: +1 (555) 123-4567'),
+          onPress: () => showAlert({
+            title: 'Contact Support',
+            message: 'Email: support@farmapp.com\nPhone: +1 (555) 123-4567',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
         },
         {
           icon: 'star-outline',
           label: 'Rate App',
-          onPress: () => Alert.alert('Rate App', 'Thank you for using our app! Please rate us on the app store.'),
+          onPress: () => showAlert({
+            title: 'Rate App',
+            message: 'Thank you for using our app! Please rate us on the app store.',
+            type: 'info',
+            buttons: [{ text: 'OK', onPress: () => {} }],
+          }),
           showArrow: true,
+        },
+      ],
+    },
+    {
+      title: 'Danger Zone',
+      items: [
+        {
+          icon: 'trash-outline',
+          label: 'Delete Account',
+          onPress: handleDeleteAccount,
+          showArrow: false,
         },
       ],
     },
@@ -440,6 +565,9 @@ export default function ProfileScreen() {
           </ScrollView>
         </SafeAreaView>
       </Modal>
+
+      {/* Custom Alert Component */}
+      <AlertComponent />
     </SafeAreaView>
   );
 }

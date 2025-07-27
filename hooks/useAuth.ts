@@ -8,7 +8,9 @@ interface ProfileUpdate {
   avatar_url?: string;
   farm_name?: string;
   farm_location?: string;
-  farm_size?: number;
+  farm_size?: string;
+  phone?: string;
+  farming_experience?: string;
 }
 
 interface AuthError {
@@ -184,12 +186,43 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const { user } = get();
       if (!user) return { error: { message: 'No user found' } };
 
-      const { error } = await supabase
+      // Prepare data for profiles table
+      const profileData: any = {};
+      if (updates.full_name) profileData.full_name = updates.full_name;
+      if (updates.farm_name) profileData.farm_name = updates.farm_name;
+      if (updates.farm_location) profileData.farm_location = updates.farm_location;
+      if (updates.farm_size) profileData.farm_size = updates.farm_size;
+
+      // Update profiles table
+      const { error: profileError } = await supabase
         .from('profiles')
-        .update(updates)
+        .update(profileData)
         .eq('id', user.id);
 
-      return { error: error ? { message: error.message } : undefined };
+      if (profileError) {
+        return { error: { message: profileError.message } };
+      }
+
+      // Update user metadata for additional fields
+      const metadataUpdates: any = {};
+      if (updates.full_name) metadataUpdates.full_name = updates.full_name;
+      if (updates.phone) metadataUpdates.phone = updates.phone;
+      if (updates.farm_location) metadataUpdates.location = updates.farm_location;
+      if (updates.farm_size) metadataUpdates.farm_size = updates.farm_size;
+      if (updates.farming_experience) metadataUpdates.farming_experience = updates.farming_experience;
+
+      if (Object.keys(metadataUpdates).length > 0) {
+        const { error: metadataError } = await supabase.auth.updateUser({
+          data: metadataUpdates
+        });
+
+        if (metadataError) {
+          console.warn('Metadata update failed:', metadataError.message);
+          // Don't return error as profile was updated successfully
+        }
+      }
+
+      return {};
     } catch (error) {
       return { error: { message: error instanceof Error ? error.message : 'Unknown error' } };
     }

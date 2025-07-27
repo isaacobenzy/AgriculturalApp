@@ -7,7 +7,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors, BorderRadius, Typography, Spacing } from '../../constants';
+import { Colors, BorderRadius, Typography, Spacing, Shadows } from '../../constants';
 
 interface CardProps {
   children: React.ReactNode;
@@ -108,14 +108,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.medium,
   },
   shadow: {
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    ...Shadows.md,
   },
   
   // Stat Card

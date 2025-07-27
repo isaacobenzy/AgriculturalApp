@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
@@ -22,13 +23,20 @@ export default function DashboardScreen() {
   const { user } = useAuthStore();
   const { crops, activities, fetchCrops, fetchActivities } = useAppStore();
   const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
+
+  const loadData = useCallback(async () => {
+    if (user) {
+      await Promise.all([
+        fetchCrops(user.id),
+        fetchActivities(user.id)
+      ]);
+    }
+  }, [user, fetchCrops, fetchActivities]);
 
   useEffect(() => {
-    if (user) {
-      fetchCrops(user.id);
-      fetchActivities(user.id);
-    }
-  }, [user]);
+    loadData();
+  }, [loadData]);
 
   const onRefresh = async () => {
     if (!user) return;
@@ -106,7 +114,7 @@ export default function DashboardScreen() {
           <Animatable.View animation="fadeInUp" duration={800} delay={400}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Active Crops</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/all-crops')}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -146,7 +154,7 @@ export default function DashboardScreen() {
           <Animatable.View animation="fadeInUp" duration={800} delay={600}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Recent Activities</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/(tabs)/all-activities')}>
                 <Text style={styles.seeAllText}>See All</Text>
               </TouchableOpacity>
             </View>
@@ -292,11 +300,13 @@ const styles = StyleSheet.create({
   },
   cropsScroll: {
     marginBottom: Spacing.xl,
+   
   },
   cropCard: {
     backgroundColor: Colors.light.card,
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
+    gap: Spacing.md,
     marginRight: Spacing.md,
     width: width * 0.7,
     ...Shadows.md,
