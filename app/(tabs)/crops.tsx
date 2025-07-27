@@ -8,7 +8,6 @@ import {
   Alert,
   Modal,
   TextInput,
-  Dimensions,
   RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,11 +19,9 @@ import { useAppStore } from '@/hooks/useApp';
 import { Crop } from '@/types';
 import { Colors, Typography, Spacing, BorderRadius, Shadows } from '@/constants';
 
-const { width } = Dimensions.get('window');
-
 export default function CropsScreen() {
   const { user } = useAuthStore();
-  const { crops, fetchCrops, addCrop, updateCrop, deleteCrop, loading } = useAppStore();
+  const { crops, fetchCrops, addCrop, updateCrop, deleteCrop } = useAppStore();
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null);
@@ -45,7 +42,7 @@ export default function CropsScreen() {
     if (user) {
       fetchCrops(user.id);
     }
-  }, [user]);
+  }, [user, fetchCrops]);
 
   const onRefresh = async () => {
     if (!user) return;

@@ -21,11 +21,11 @@ import { useAppStore } from '@/hooks/useApp';
 import { FarmActivity } from '@/types';
 import { Colors, Typography, Spacing, BorderRadius, Shadows, ActivityTypesList } from '@/constants';
 
-const { width } = Dimensions.get('window');
+Dimensions.get('window');
 
 export default function ActivitiesScreen() {
   const { user } = useAuthStore();
-  const { activities, crops, fetchActivities, fetchCrops, addActivity, updateActivity, deleteActivity, loading } = useAppStore();
+  const { activities, crops, fetchActivities, fetchCrops, addActivity, updateActivity, deleteActivity } = useAppStore();
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null);
@@ -46,7 +46,7 @@ export default function ActivitiesScreen() {
       fetchActivities(user.id);
       fetchCrops(user.id);
     }
-  }, [user]);
+  }, [user, fetchActivities, fetchCrops]);
 
   const onRefresh = async () => {
     if (!user) return;

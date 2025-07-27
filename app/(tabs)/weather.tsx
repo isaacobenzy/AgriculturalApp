@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -34,14 +34,7 @@ export default function WeatherScreen() {
   const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchWeatherData(user.id);
-      requestLocationPermission();
-    }
-  }, [user, fetchWeatherData]);
-
-  const requestLocationPermission = async () => {
+  const requestLocationPermission = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status === 'granted') {
@@ -60,11 +53,17 @@ export default function WeatherScreen() {
     } catch (error) {
       console.error('Error requesting location permission:', error);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchWeatherData(user.id);
+      requestLocationPermission();
+    }
+  }, [user, fetchWeatherData, requestLocationPermission]);
 
   const getCurrentLocation = async () => {
     try {
-      const currentLocation = await Location.getCurrentPositionAsync({});
       // In a real app, you would fetch weather data from a weather API here
       // For demo purposes, we'll simulate weather data
       simulateCurrentWeather();
