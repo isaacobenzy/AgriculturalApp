@@ -1,59 +1,4 @@
--- Enable Row Level Security
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE crops ENABLE ROW LEVEL SECURITY;
-ALTER TABLE farm_activities ENABLE ROW LEVEL SECURITY;
-ALTER TABLE weather_data ENABLE ROW LEVEL SECURITY;
-
--- Profiles table policies
-CREATE POLICY "Users can view own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update own profile" ON profiles
-  FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Users can insert own profile" ON profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
-
--- Crops table policies
-CREATE POLICY "Users can view own crops" ON crops
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own crops" ON crops
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own crops" ON crops
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own crops" ON crops
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Farm activities table policies
-CREATE POLICY "Users can view own activities" ON farm_activities
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own activities" ON farm_activities
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own activities" ON farm_activities
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own activities" ON farm_activities
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Weather data table policies
-CREATE POLICY "Users can view own weather data" ON weather_data
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert own weather data" ON weather_data
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update own weather data" ON weather_data
-  FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete own weather data" ON weather_data
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Create tables if they don't exist
+-- Create tables first
 CREATE TABLE IF NOT EXISTS profiles (
   id UUID REFERENCES auth.users(id) PRIMARY KEY,
   email TEXT NOT NULL,
@@ -134,3 +79,58 @@ CREATE TRIGGER update_crops_updated_at BEFORE UPDATE ON crops
 
 CREATE TRIGGER update_farm_activities_updated_at BEFORE UPDATE ON farm_activities
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable Row Level Security
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE crops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE farm_activities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE weather_data ENABLE ROW LEVEL SECURITY;
+
+-- Profiles table policies
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own profile" ON profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
+-- Crops table policies
+CREATE POLICY "Users can view own crops" ON crops
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own crops" ON crops
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own crops" ON crops
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own crops" ON crops
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Farm activities table policies
+CREATE POLICY "Users can view own activities" ON farm_activities
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own activities" ON farm_activities
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own activities" ON farm_activities
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own activities" ON farm_activities
+  FOR DELETE USING (auth.uid() = user_id);
+
+-- Weather data table policies
+CREATE POLICY "Users can view own weather data" ON weather_data
+  FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can insert own weather data" ON weather_data
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own weather data" ON weather_data
+  FOR UPDATE USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own weather data" ON weather_data
+  FOR DELETE USING (auth.uid() = user_id);
