@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Animatable from 'react-native-animatable';
+import { router } from 'expo-router';
 import { useAuthStore } from '@/hooks/useAuth';
 import { useAppStore } from '@/hooks/useApp';
 import { useCustomAlert } from '@/components/ui/CustomAlert';
@@ -62,12 +63,8 @@ export default function ProfileScreen() {
           onPress: async () => {
             try {
               await signOut();
-              showAlert({
-                title: 'Success',
-                message: 'You have been signed out successfully',
-                type: 'success',
-                buttons: [{ text: 'OK', onPress: () => {} }],
-              });
+              // Force navigation to the welcome screen
+              router.replace('/(auth)/welcome');
             } catch (error) {
               showAlert({
                 title: 'Error',

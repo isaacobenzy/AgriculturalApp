@@ -35,6 +35,22 @@ export default function WeatherScreen() {
   const [currentWeather, setCurrentWeather] = useState<CurrentWeather | null>(null);
   const [locationPermission, setLocationPermission] = useState(false);
 
+  const getCurrentLocation = useCallback(async () => {
+    try {
+      // In a real app, you would fetch weather data from a weather API here
+      // For demo purposes, we'll simulate weather data
+      simulateCurrentWeather();
+    } catch (error) {
+      console.error('Error getting location:', error);
+      showAlert({
+        title: 'Error',
+        message: 'Unable to get current location',
+        type: 'error',
+        buttons: [{ text: 'OK', onPress: () => {} }],
+      });
+    }
+  }, [showAlert]);
+
   const requestLocationPermission = useCallback(async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -55,8 +71,7 @@ export default function WeatherScreen() {
     } catch (error) {
       console.error('Error requesting location permission:', error);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getCurrentLocation]);
+  }, [getCurrentLocation, showAlert]);
 
   useEffect(() => {
     if (user) {
@@ -64,22 +79,6 @@ export default function WeatherScreen() {
       requestLocationPermission();
     }
   }, [user, fetchWeatherData, requestLocationPermission]);
-
-  const getCurrentLocation = useCallback(async () => {
-    try {
-      // In a real app, you would fetch weather data from a weather API here
-      // For demo purposes, we'll simulate weather data
-      simulateCurrentWeather();
-    } catch (error) {
-      console.error('Error getting location:', error);
-      showAlert({
-        title: 'Error',
-        message: 'Unable to get current location',
-        type: 'error',
-        buttons: [{ text: 'OK', onPress: () => {} }],
-      });
-    }
-  }, []);
 
   const simulateCurrentWeather = () => {
     // Simulate current weather data
